@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="icon" href="logo.png">
+        <title>Physics</title>
+        <link rel="stylesheet" href="style.css">
+        <script src="vector.js"></script>
+        <script src="utils.js"></script>
+    </head>
+    <body>
+        <canvas id="canvas"> UR CANVAS (loading) </canvas>
+        
+        <div id="leftmenu">
+            <p>Note: The screen is 500 meters (theoretically) wide and tall.<br>
+            Units are in meters.</p>
+            <button id="addballbtn">Add ball</button><br>
+            <label for="xinp">X-value of ball</label><br>
+            <input id="xinp" type="number" value="250"><br>
+            <label for="yinp">Y-value of ball</label><br>
+            <input id="yinp" type="number" value="250"><br>
+            <label for="rinp">Radius (half the diameter/size)</label><br>
+            <input id="rinp" type="number" value="5">meters<br>
+            <label for="binp">Bounciness (1 is full bounce, 0 is no bounce)</label><br>
+            <input id="binp" type="number" value="0.8"><br>
+            <label for="cinp">Ball color</label><br>
+            <input id="cinp" type="color" value="#F0F0F0"><br>
+            <label for="winp">Weight of ball</label><br>
+            <input id="winp" type="number" value="981.7">kg<br>
+            <label for="vxinp">X-value of ball velocity (m/s)</label><br>
+            <input id="vxinp" type="number" value="500">m/s<br>
+            <label for="vyinp">Y-value of ball velocity (m/s)</label><br>
+            <input id="vyinp" type="number" value="0">m/s<br>
+            <label for="density">Density (kg/m²)</label>
+            <input id="dinp" type="number" value="12.5">kg/m²<br>
+            <label for="presets">Preset materials</label><br>
+            <select id="presets">
+                <option value="pla">PLA</option>
+                <option value="sm">Steel marble</option>
+                <option value="fb">Fully bouncy</option>
+                <option value="nb">No bounce</option>
+                <option value="w">Water (68°F)</option>
+                <option value="m">Mercury (liquid metal at room temp.)</option>
+                <option value="sf">Styrofoam</option>
+            </select><br>
+            <label for="autoc">Auto-create balls</label>
+            <input id="autoc" type="checkbox"><br>
+            <label for="substeps">Substeps</label>
+            <input id="substeps" type="number" value="4">
+            <label for="swi">Stream width</label>
+            <input id="swi" value="5" type="number">
+            <label for="acs">Auto-create speed</label>
+            <input id="acs" value="2" type="number"><br>
+            <label for="fixed">Fixed</label><br>
+            <input type="checkbox" id="fixed">
+            <!--<span id="bsp">By Ethan G., and I don't know if all right are reserved. Copy-or-not-right 2024 Ethan G.</span>-->
+        </div>
+        <div id="rightmenu">
+            <span id="FPS"></span>
+            <button id="selectbtn">Select</button><br>
+            <div id="hidden">
+                <button id="remove">Remove</button>
+
+                <!--<button id="edit">Edit ball</button>-->
+            </div>
+            <button id="clearbtn">Clear</button><br>
+            <button id="clearufbtn" style="font-size: x-small;">Clear unfixed</button><br>
+            <button id="albtn">Add line</button><br>
+            <label for="lwinp">Line width</label><br>
+            <input id="lwinp" type="number" value="5"><br>
+            <button id="avbtn">Add valve</button><br>
+            <button id="ocvbtn" style="font-size: xx-small;">Open/close valve</button><br>
+            <label for="vninp">Valve #</label><br>
+            <input id="vninp" type="number" value="0" max="0" min="0"><br>
+            <button id="ppbtn" style="background-color: green;">⏵⏸</button><br>
+            <button id="savebtn">Save</button><br>
+            <a id="savelnk" download="save.json" style="display: none;" href="data:text.json,{'objs':[],'lines':[]}">Save</a><br>
+            <label for="saveinp">Save file</label><br>
+            <input type="file" id="saveinp" accept="text/json" onchange = "processFiles(this.files)"><br>
+            <button id="rstbtn" style="font-size: x-small;">Reset to save</button><br>
+            <button id="afbtn">Add fan</button><br>
+            <label for="fsinp">Fan strength</label><br>
+            <input id="fsinp" type="number" value="10">
+            <!--<button id="slbtn" style="font-size: smaller;" onclick="sobjs = objs;slines = lines">Save locally</button>-->
+        </div>
+        <script src="elements.js"></script>
+        <script src="phys.js"></script>
+        <script src="main.js"></script>
+    </body>
+</html>
