@@ -142,8 +142,8 @@ switch(getCookie("btype")){
         rinp.value=5
         stinp.value=0
 }
-const fan1 = imgSrc("fan1.png")
-const fan2 = imgSrc("fan2.png")
+const fan1 = imgSrc("https://randomphysics.tiiny.site/fan1.png")
+const fan2 = imgSrc("https://randomphysics.tiiny.site/fan2.png")
 const savestr = getStorage("save")
 if (savestr){
     decode(savestr)
