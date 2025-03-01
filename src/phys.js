@@ -11,7 +11,9 @@ class Obj {
     s=false
     f=false
     tb = []
-    constructor(x, y, r, c, w, vx, vy, b) {
+    liquid= false
+    surftens = 0
+    constructor(x, y, r, c, w, vx, vy, b, l, st, f) {
         this.p={x,y}
         this.v={x:vx*(meterPixRatio/targetRate),y:vy*(meterPixRatio/targetRate)}
         this.pp=subVec(this.p, this.v)
@@ -21,6 +23,8 @@ class Obj {
         this.b=b
         this.n=objs.length
         this.f=fixed.checked
+        this.liquid = l
+        this.surftens = st/this.w
     }
     phys(){
         if (!this.f){
@@ -28,28 +32,45 @@ class Obj {
             this.pp=this.p
             this.p=addVec(this.p, this.v)
             
-            this.a={x:0,y:(meterPixRatio*9.8)/targetRate}
-        }
-    }
-    surfTens(){
-
-        if (this.tb.length){
-            const sost = -0.2/this.tb.length
-            this.tb.forEach(b=>{
-                const an = norm(subVec(this.p, b))
-                this.p = addVec(multVecCon(an,sost),this.p)
-            })
+            this.a={x:0,y:(meterPixRatio*grav)/targetRate}
         }
     }
     addForce(m, f){
-        f = divVecCon(f, Math.max(10,this.w/m))
+        f = divVecCon(f, this.w*2*this.r/m)
         this.a = addVec(this.a, f)
     }
+    surfTens(){
+        /*if (this.liquid){
+            let i = 0
+            objs.forEach(o => {
+                if (i !== this.i){
+                    const d = dist(o.p, this.p)
+                    if (d<=this.r+o.r && d!==0){
+                        this.tb.push([o,d,i])
+                    }
+                }
+                i++
+            })
+            this.tb.forEach(o => {
+                
+                const st = (this.surftens+o[0].surftens)*0.5
+            })
+            this.tb=[]
+        }*/
+    }
     collline(l){
-        const d = ( ((this.p.x-l.p1.x)*(l.p2.x-l.p1.x)) + ((this.p.y-l.p1.y)*(l.p2.y-l.p1.y)) ) / dist(l.p1, l.p2)**2;
-        let cx = l.p1.x + (d * (l.p2.x-l.p1.x))
-        let cy = l.p1.y + (d * (l.p2.y-l.p1.y))
-        try{const os = linePoint(l.p1, l.p2, {x:cx,y:cy})
+        const sp1 = subVec(l.p1,l.m.p)
+        const sp2 = subVec(l.p2, l.m.p)
+        const x1 = sp1.x*Math.cos(l.m.t)-sp1.y*Math.sin(l.m.t)+l.m.p.x
+        const y1 = sp1.x*Math.sin(l.m.t)+sp1.y*Math.cos(l.m.t)+l.m.p.y
+        const x2 = sp2.x*Math.cos(l.m.t)-sp2.y*Math.sin(l.m.t)+l.m.p.x
+        const y2 = sp2.x*Math.sin(l.m.t)+sp2.y*Math.cos(l.m.t)+l.m.p.y
+        const v1 = {x:x1,y:y1}
+        const v2 = {x:x2,y:y2}
+        const d = ( ((this.p.x-x1)*(x2-x1)) + ((this.p.y-y1)*(y2-y1)) ) / dist(v1, v2)**2;
+        let cx = x1 + (d * (x2-x1))
+        let cy = y1 + (d * (y2-y1))
+        try{const os = linePoint(v1, v2, {x:cx,y:cy})
         if (os !== "EE"){
             cx = os.x
             cy = os.y
@@ -91,13 +112,11 @@ class Obj {
                     const mb = 1/(this.w+b.w)
                     const ad1 = (mb*b.w)
                     const ad2 = (mb*this.w)
-                    this.p = addVec(this.p, multVecCon(collNorm, -ad1*adjdist))
-                    b.p = addVec(b.p, multVecCon(collNorm, ad2*adjdist))
-                    
-                    if (this.c[0]===0&&b.c[0]===0 && this.c[1]===76 && b.c[1]===76 && this.c[2]===255 && b.c[2]===255 && notInArray(this.tb, b.i)){
-                        this.tb.push({x:b.p.x,y:b.p.y,i:b.i})
-                        b.tb.push({x:this.p.x,y:this.p.y,i:this.i})
-                    }
+                    const rmb = 1/(this.r+b.r)
+                    const rm1 = rmb * this.r
+                    const rm2 = rmb * b.r
+                    this.p = addVec(this.p, multVecCon(collNorm, -ad1*rm1*adjdist))
+                    b.p = addVec(b.p, multVecCon(collNorm, ad2*rm2*adjdist))
                     /*const vn = divVecCon(addVec(multVecCon(this.v, this.w), multVecCon(b.v, b.w)), this.w+b.w)
 
                     const cm = this.w+b.w
@@ -155,8 +174,7 @@ class Obj {
 }
 //const tobj = new Obj(400, 100, 10, [0,0,255], 10, 10, 0, 1)
 function addObj(x,y,r,b,c,vx,vy,w){
-    objs.push(new Obj(x, y, r*meterPixRatio, c, w, vx*meterPixRatio, vy*meterPixRatio, b))
-    
+    objs.push(new Obj(x, y, r*meterPixRatio, c, w, vx*meterPixRatio, vy*meterPixRatio, b, liq, parseFloat(stinp.value)*0.001))
 }
 function addFan(x,y,speed,d,mp){
     fans.push({
