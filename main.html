@@ -34,6 +34,8 @@
             <input id="vyinp" type="number" value="0">m/s<br>
             <label for="density">Density (kg/m²)</label>
             <input id="dinp" type="number" value="12.5">kg/m²<br>
+            <label for="stinp">Surface tension (mN/meter²)<br><span class="tinytxt">Note: Surface tension of water is about 72 mN/meter².</span></label><br>
+            <input id="stinp" type="number" value="0"><br>
             <label for="presets">Preset materials</label><br>
             <select id="presets">
                 <option value="pla">PLA</option>
@@ -46,46 +48,88 @@
             </select><br>
             <label for="autoc">Auto-create balls</label>
             <input id="autoc" type="checkbox"><br>
-            <label for="substeps">Substeps</label>
-            <input id="substeps" type="number" value="4">
-            <label for="swi">Stream width</label>
-            <input id="swi" value="5" type="number">
-            <label for="acs">Auto-create speed</label>
+            <label for="substeps">Substeps</label><br>
+            <input id="substeps" type="number" value="4"><br>
+            <label for="swi">Stream width</label><br>
+            <input id="swi" value="5" type="number"><br>
+            <label for="acs">Auto-create speed</label><br>
             <input id="acs" value="2" type="number"><br>
             <label for="fixed">Fixed</label><br>
             <input type="checkbox" id="fixed">
-            <!--<span id="bsp">By Ethan G., and I don't know if all right are reserved. Copy-or-not-right 2024 Ethan G.</span>-->
         </div>
         <div id="rightmenu">
             <span id="FPS"></span>
-            <button id="selectbtn">Select</button><br>
-            <div id="hidden">
-                <button id="remove">Remove</button>
+                <div class="idk">
+                <button id="selectbtn">Select</button><br>
+                <div id="hidden">
+                    <button id="remove">Remove</button>
 
-                <!--<button id="edit">Edit ball</button>-->
+                    <!--<button id="edit">Edit ball</button>-->
+                </div>
+                <button id="clearbtn">Clear</button><br>
+                <button id="clearufbtn" style="font-size: x-small;">Clear unfixed</button><br>
+                <button id="albtn">Add line</button><br>
+                <label for="lwinp">Line width</label><br>
+                <input id="lwinp" type="number" value="20"><br>
+                <button id="avbtn">Add valve</button><br>
+                <button id="ocvbtn" style="font-size: xx-small;">Open/close valve</button><br>
+                <label for="vninp">Valve #</label><br>
+                <input id="vninp" type="number" value="0" max="0" min="0"><br>
+                <button id="ppbtn" style="background-color: green;">⏵⏸</button><br>
+                <button id="savebtn">Save as file</button><br>
+                <!--<button id="savebtnc" onclick="saveData(encode(), 'save')">Save as cookie</button><br>-->
+                <a id="savelnk" download="save.json" style="display: none;" href="data:text.json,{'objs':[],'lines':[]}">Save</a><br>
+                <label for="saveinp">Save file</label><br>
+                <input type="file" id="saveinp" accept="text/json" onchange = "processFiles(this.files)"><br>
+                <button id="rstbtn" style="font-size: x-small;">Reset to save</button><br>
+                <button id="afbtn">Add fan</button><br>
+                <label for="fsinp">Fan strength</label><br>
+                <input id="fsinp" type="number" value="10"><br>
+                <label for="scinp">Scale</label><br>
+                <select id="scinp">
+                    <option value="m">Meters</option>
+                    <option value="cm">Centimeters</option>
+                    <option value="mm">Millimeters</option>
+                </select><br>
             </div>
-            <button id="clearbtn">Clear</button><br>
-            <button id="clearufbtn" style="font-size: x-small;">Clear unfixed</button><br>
-            <button id="albtn">Add line</button><br>
-            <label for="lwinp">Line width</label><br>
-            <input id="lwinp" type="number" value="5"><br>
-            <button id="avbtn">Add valve</button><br>
-            <button id="ocvbtn" style="font-size: xx-small;">Open/close valve</button><br>
-            <label for="vninp">Valve #</label><br>
-            <input id="vninp" type="number" value="0" max="0" min="0"><br>
-            <button id="ppbtn" style="background-color: green;">⏵⏸</button><br>
-            <button id="savebtn">Save</button><br>
-            <a id="savelnk" download="save.json" style="display: none;" href="data:text.json,{'objs':[],'lines':[]}">Save</a><br>
-            <label for="saveinp">Save file</label><br>
-            <input type="file" id="saveinp" accept="text/json" onchange = "processFiles(this.files)"><br>
-            <button id="rstbtn" style="font-size: x-small;">Reset to save</button><br>
-            <button id="afbtn">Add fan</button><br>
-            <label for="fsinp">Fan strength</label><br>
-            <input id="fsinp" type="number" value="10">
+            <div class="idk">
+                <label for="addselect">Watcha gonna add (select line first for motor)</label><br>
+                <select id="addselect">
+                    <option value="m">Motor</option>
+                    <option value="tc">Trash can</option>
+                </select><br>Line #<br>
+                <input id="lni" type="number" value="0" max="0" min="0"><br>
+                <label for="msinp">Motor speed</label><br>
+                <input id="msinp" type="number" value="1">°/sec<br>
+                <button onclick="lines[lninp.value].m.h=false;lines[lninp.value].m.t=0">Remove motor</button><br>
+                <button id="okbtn1">OK</button><br>
+                <button id="dbtn">Delete (select)</button>
+            </div><br>
+            <!--<span id="console">text</span>-->
+            <img src="tcan.png" style="display: none;" id="tcansrc">
+            <button id="settingsbtn"><img src="https://upload.wikimedia.org/wikipedia/commons/2/2d/Gear_%2889033%29_-_The_Noun_Project.svg"></button>
             <!--<button id="slbtn" style="font-size: smaller;" onclick="sobjs = objs;slines = lines">Save locally</button>-->
+        </div>
+        
+        <div id="settings">
+            <h1>SETTINGS</h1>
+            <label for="gravinp">Gravity</label><br>
+            <input id="gravinp" value="1" type="number" max="5"> Gs<br>
+            <label for="ceinp">Can explode</label><br>
+            <input id="ceinp" type="checkbox"><br>
+            <!--<label for="slines">Snap lines</label><br>-->
+            <input type="checkbox" id="slinp" checked="true"><br>
+            Save every <input id="sps" type="number" value="2"> second(s)
+
+            <button id="xstbtn" onclick="
+                settings.style.display='none'
+                paused=false
+            ">×</button>
+
         </div>
         <script src="elements.js"></script>
         <script src="phys.js"></script>
+        <script src="polygon.js"></script>
         <script src="main.js"></script>
     </body>
 </html>
