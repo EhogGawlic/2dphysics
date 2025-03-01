@@ -1,12 +1,18 @@
 
 let a = 0
+let t = 0
+setInterval(()=>{
+    saveData(encode(), 'save')
+},sps.value*1000)
 function run(){
+    t++
     const ft = (thisLoop=Date.now()) - lastLoop
     frameTime+= (ft-frameTime)/filterS
     lastLoop = thisLoop
     pfps=fps
     fps=(1000/frameTime).toFixed(1)
     fpsEl.innerText=fps+" FPS"
+    
     /*if (Math.round(fps/5)!==Math.round(pfps/5)){
         for (let i = 0; i < objs.length; i++){
             const mb = targetRate/fps
@@ -15,7 +21,7 @@ function run(){
             o.pp = subVec(o.p, o.vx)
         }
     }*/
-    if (autoc.checked){
+    if (autoc.checked && (!paused||ceinp.checked)){
         if (a >= parseInt(acs.value)){
             for (let i = 0; i < parseInt(swi.value); i++){
                 addObj(parseFloat(xinp.value)*meterPixRatio, parseFloat(yinp.value)*meterPixRatio+parseFloat(rinp.value)*8*i,
@@ -28,7 +34,7 @@ function run(){
         a++
     }
     ctx.clearRect(0,0,innerHeight,innerHeight)
-
+    let dqueue = []
     objs.forEach(obj => {
         obj.draw()
         
@@ -43,20 +49,57 @@ function run(){
                 let cy = f.p.y + (d * (p2.y-f.p.y))
                 const dbcp = dist(obj.p, {x:cx,y:cy})
                 const dfcp = dist(f.p, {x:cx,y:cy})
-                if (dbcp <= 30 && dfcp <= f.md){
-                    obj.addForce(10, multVecCon(f.dir,f.s*50/dbcp))
+                /*try{
+                const rfd = {x:Math.round(f.dir.x*100)*0.01,y:Math.round(f.dir.y*100)*0.01}
+                const nbf = norm(subVec(f.p, {x:cx,y:cy}))
+                const cfd = {x:Math.round(nbf.x*100)*0.01,y:Math.round(nbf.y*100)*0.01}*/
+                if (dbcp <= 30 && dfcp <= f.md){// && rfd.x===cfd.x&&rfd.y===cfd.y){
+                    obj.addForce(10, multVecCon(f.dir,f.s*f.md/(dfcp*f.md)))
                 }
+            //}catch(e){alert(e)}
             }
+            tcans.forEach(tc => {
+                
+                if (obj.p.y-obj.r >= tc.y-30 && obj.p.y+obj.r <= tc.y+40 && obj.p.x-obj.r >= tc.x-30 && obj.p.x+obj.r <= tc.x+30){
+                    dqueue.push(obj.n)
+                }
+            })
             obj.phys()
+            
         }
     })
+    polys.forEach(p => {
+        p.phys()
 
+    })
+    for (let n = dqueue.length-1; n >= 0; n--){
+        objs.splice(dqueue[n], 1)
+        for (let i = 0; i < objs.length; i++){
+            if (i>=dqueue[n]){
+                objs[i].n--
+            }
+        }
+    }
+    
     ctx.strokeStyle="black"
     lines.forEach(l => {
+        let x1 = l.p1.x
+        let y1 = l.p1.y
+        let x2 = l.p2.x
+        let y2 = l.p2.y
+        if (l.m.h){
+            if(!paused){l.m.t+=l.m.s}
+            const sp1 = subVec(l.p1,l.m.p)
+            const sp2 = subVec(l.p2, l.m.p)
+            x1 = sp1.x*Math.cos(l.m.t)-sp1.y*Math.sin(l.m.t)+l.m.p.x
+            y1 = sp1.x*Math.sin(l.m.t)+sp1.y*Math.cos(l.m.t)+l.m.p.y
+            x2 = sp2.x*Math.cos(l.m.t)-sp2.y*Math.sin(l.m.t)+l.m.p.x
+            y2 = sp2.x*Math.sin(l.m.t)+sp2.y*Math.cos(l.m.t)+l.m.p.y
+        }
         ctx.lineWidth = l.w
         ctx.beginPath()
-        ctx.moveTo(l.p1.x,l.p1.y)
-        ctx.lineTo(l.p2.x,l.p2.y)
+        ctx.moveTo(x1, y1)
+        ctx.lineTo(x2, y2)
         ctx.stroke()
         ctx.lineWidth = 1
     })
@@ -64,6 +107,9 @@ function run(){
     fans.forEach(f => {
 
         drawFan(f)
+    })
+    tcans.forEach(tcan => {
+        ctx.drawImage(tcansrc, tcan.x-64, tcan.y-64, 128, 128)
     })
     let i = 0
     valves.forEach(v =>{
@@ -81,13 +127,17 @@ function run(){
         ctx.stroke()
         i++
     })
-    for (let n = 0; n < parseInt(substeps.value); n++){
-        for (let i = 0; i < objs.length; i++){
-            const obj = objs[i]
-            obj.collall()
-            obj.collwall()
-            obj.surfTens()
-            obj.tb=[]
+    if (!paused || ceinp.checked){
+        for (let n = 0; n < parseInt(substeps.value); n++){
+            for (let i = 0; i < objs.length; i++){
+                const obj = objs[i]
+                obj.collall()
+                if (!infspace){
+                    obj.collwall()
+                }
+                obj.surfTens()
+                obj.tb=[]
+            }
         }
     }
     if (ml && cn===1){
@@ -99,6 +149,11 @@ function run(){
         ctx.stroke()
         ctx.lineWidth = 1
     }
+    //
+    // GYATTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
+    // GYATTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
+    // GYATTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
+    //
 }
 setInterval(run, 1000/targetRate)
 abbtn.addEventListener("click", ()=>{
@@ -109,12 +164,26 @@ abbtn.addEventListener("click", ()=>{
 })
 window.addEventListener("keypress", (e) => {
     switch (e.key){
-        case "c":
+        case "c"||"Escape":
             selecting = false
             av = false 
             af = false 
             ml = false
             cn=0
+            deleting=false
+            break
+        case "l":
+
+            ml = true
+            canvas.style.cursor="crosshair"
+            break
+        case "f":
+            af=true
+            canvas.style.cursor="crosshair"
+            break
+        case "k" || " ":
+            paused = paused ? false : true
+            ppbtn.style.backgroundColor = paused ? "red" : "green"
     }
 })
 canvas.addEventListener("contextmenu", (e)=>{
@@ -129,8 +198,8 @@ canvas.addEventListener("mouseup", ()=>{
     clicking = false
 })
 canvas.addEventListener("mousemove", (e)=>{
-    mx = (e.clientX-offX)*ma
-    my =  e.clientY*ma
+    mx = Math.round((e.clientX-offX)*ma)
+    my = Math.round(e.clientY*ma)
     if (clicking){
 
         const p = selectLinePoint(mx, my)
@@ -155,15 +224,20 @@ canvas.addEventListener("mousemove", (e)=>{
     }
 })
 canvas.addEventListener("click", (e)=>{
+    //
+    // GYATTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
+    // GYATTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
+    // GYATTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
+    //
     if (e.clientX>offX&&e.clientX<innerWidth-offX){
-        if (!selecting && !ml && !av && !af){
+        if (!selecting && !ml && !av && !af && !deleting && !adding.ia){
             addObj(mx,my,
             parseFloat(rinp.value),parseFloat(binp.value),
             HEXRGB(cinp.value),parseFloat(vxinp.value),
             parseFloat(vyinp.value), parseFloat(winp.value))
             return
         }
-        if (selecting && !ml && !av && !af){
+        if (selecting && !ml && !av && !af && !deleting && !adding.ia){
             const s = select(mx, my)
             if (s!==false){
                 if (sil===false){
@@ -175,7 +249,7 @@ canvas.addEventListener("click", (e)=>{
     canvas.style.cursor="crosshair"
             }  
         }
-        if (ml && !selecting && !av && !af){
+        if (ml && !selecting && !av && !af && !deleting && !adding.ia){
             switch(cn){
                 case 0:
                     
@@ -186,14 +260,15 @@ canvas.addEventListener("click", (e)=>{
                 case 1:
                     c2p = snapLines(mx, my)
                     addLine(parseInt(lwinp.value))
+                    //lines[lines.length-1].m={h:true,p:{x:mx, y:my},t:0}
             }
         }
-        if (av && !selecting && !af && !ml){
+        if (av && !selecting && !af && !ml && !deleting && !adding.ia){
             valves.push({p:{x:mx, y:my},r:parseFloat(rinp.value)*meterPixRatio,c:HEXRGB(cinp.value),o:false})
             vninp.max = valves.length-1
             av=false
         }
-        if (af && !selecting && !av && !ml){
+        if (af && !selecting && !av && !ml && !deleting && !adding.ia){
             switch(cn){
                 case 0:
                     fp = {x:mx,y:my}
@@ -205,7 +280,57 @@ canvas.addEventListener("click", (e)=>{
                     af=false
             }
         }
+        if (deleting && !selecting && !av && !ml && !af && !adding.ia){
+            let selecteda
+            const sb = selectBall(mx, my)
+            if (sb!==undefined){ selecteda = sb; selecttype="ball" }
+            const sv = selectValve(mx, my)
+            if (sv!==undefined){ selecteda = sv; selecttype="valve" }
+            const sf = selectFan(mx, my)
+            if (sf!==undefined){ selecteda = sf; selecttype="fan" }
+            const stc = selectTCan(mx, my)
+            if (stc!==undefined){ selecteda = stc; selecttype="tcan" }
+            if (selecttype!=="none"){
+                switch(selecttype){
+                    case "ball":
+                        objs.splice(selecteda, 1)
+                        for (let i = 0; i < objs.length; i++){
+                            if (i>=selecteda){
+                                objs[i].n--
+                            }
+                        }
+                        break
+                    case "valve":
+                        valves.splice(selecteda, 1)
+                        vninp.max=valves.length-1
+                        break
+                    case "fan":
+                        fans.splice(selecteda, 1)
+                        break
+                    case "tcan":
+                        tcans.splice(selecteda, 1)
+                }
+            }
+            deleting=false
+            selecttype="none"
+        }
+        if (!deleting && !selecting && !av && !ml && !af && adding.ia){
+            switch(adding.t){
+                case 1:
+                    tcans.push({x:mx, y:my})
+                    break
+                case 2:
+                    lines[lninp.value].m = {p:snapLines(mx,my),h:true,t:0,s:msinp.value*0.0174533/targetRate}
+            }
+            adding.ia=false
+
+        }
     }
+    //
+    // GYATTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
+    // GYATTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
+    // GYATTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
+    //
 })
 rinp.addEventListener("change", ()=>{
     winp.value = (Math.PI*parseFloat(rinp.value)**2)*parseFloat(dinp.value)
@@ -219,42 +344,67 @@ presets.addEventListener("change", ()=>{
             dinp.value=78.3
             cinp.value="#808080"
             binp.value=0.2
+            liq = false
+            stinp.value=0
+            rinp.value=5
             break
         case "pla":
             dinp.value=12.5
             cinp.value="#F0F0F0"
             binp.value=0.8
+            liq = false
+            stinp.value=0
+            rinp.value=5
             break
         case "fb":
             dinp.value=12.5
             cinp.value="#0080FF"
             binp.value=1
+            liq = false
+            stinp.value=0
+            rinp.value=5
             break
         case "nb":
             dinp.value=12.5
             cinp.value="#FF6961"
             binp.value=0
+            liq = false
+            stinp.value=0
+            rinp.value=5
             break
         case "w":
             dinp.value=9.98
             cinp.value="#004CFF"
             binp.value=0.05
             rinp.value=1
-            vxinp.value=250
+            vxinp.value=300
             vyinp.value=150
             acs.value=1
+            liq = true
+            stinp.value=72
             break
         case "m":
             dinp.value=135.46
             cinp.value="#B7B8B9"
-            binp.value=0.8
+            binp.value=0.05
+            rinp.value=1
+            vxinp.value=300
+            vyinp.value=150
+            acs.value=1
+            liq = true
+            stinp.value=72
             break
         case "sf":
             dinp.value=0.35
             cinp.value="#F9F9F9"
             binp.value=0.1
+            liq = false
+            rinp.value=5
+            stinp.value=0
     }
     winp.value = (Math.PI*parseFloat(rinp.value)**2)*parseFloat(dinp.value)
+    document.cookie = "btype=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    document.cookie="btype=\""+presets.value+"\"; path=/;"
 })
 selectbtn.addEventListener("click", ()=>{
     if (selecting){
@@ -290,8 +440,11 @@ clearbtn.addEventListener("click", ()=>{
     lines=[]
     valves=[]
     fans=[]
+    tcans=[]
     cn=0
     ml =false
+    deleting=false
+    adding.ia=false
 })
 albtn.addEventListener("click", ()=>{
     ml = true
@@ -310,12 +463,25 @@ clearufbtn.addEventListener("click", ()=>{
         objs.splice(deleted[d-1], 1)
     }
 })
-
+okbtn.addEventListener("click", ()=>{
+    switch(asinp.value){
+        case "tc":
+            
+            adding.ia=true
+            adding.t=1
+            break
+        case "m":
+            adding.ia=true
+            adding.t=2
+    }
+})
 savebtn.addEventListener("click", ()=>{
     const save = {
-        objs: objs,
-        lines: lines,
-        valves: valves
+        objs,
+        lines,
+        valves,
+        fans,
+        tcans
     }
     savelnk.href="data:text/json,"+JSON.stringify(save)
     savelnk.click()
@@ -329,11 +495,14 @@ rstbtn.addEventListener("click", ()=>{
     objs=[]
     lines=[]
     valves=[]
+    fans=[]
+    tcans=[]
     cn=0
     ml =false
+    deleting=false
     for (let i = 0; i < saved.objs.length; i++){
         const o = saved.objs[i]
-        addObj(o.p.x,o.p.y,o.r/meterPixRatio,o.b,o.c,o.v.x/meterPixRatio,o.v.y/meterPixRatio,o.v.w)
+        objs.push(new Obj(o.x, o.y, o.r, o.c, o.w, o.vx, o.vy, o.b, o.liquid, o.surftens))
         objs[i].f = o.f
     }
     for (let i = 0; i < saved.valves.length; i++){
@@ -352,4 +521,41 @@ ocvbtn.addEventListener("click", ()=>{
 })
 afbtn.addEventListener("click", ()=>{
     af=true
+})
+scinp.addEventListener("change",()=>{
+    objs=[]
+    lines=[]
+    valves=[]
+    fans=[]
+    tcans=[ ]
+    cn=0
+    ml =false
+
+    switch(scinp.value){
+        case "m":
+            meterPixRatio = (innerHeight-52)/500
+            break
+        case "cm":
+            meterPixRatio = (innerHeight-52)*0.5
+            break
+        case "mm":
+            meterPixRatio = (innerHeight-52)*5
+    }
+})
+dbtn.addEventListener("click", ()=>{
+    deleting=true
+})
+grinp.addEventListener("change", ()=>{
+    grav = grinp.value*9.8
+    if (grinp.value === 0){
+        grav=0
+    }
+})
+stbtn.addEventListener("click", ()=>{
+    paused = settings.style.display === "none" ? true : false
+    settings.style.display = settings.style.display === "none" ? "block" : "none"
+})
+//setTimeout(()=>{document.body.firstChild.style.display="none"},5000)
+sps.addEventListener("change", ()=>{
+    saveData(sps.value, 'savespersec')
 })
