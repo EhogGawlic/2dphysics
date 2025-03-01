@@ -35,10 +35,6 @@ button{
     width: 100px;
     cursor: pointer;
 }
-button:hover{
-    width: 150px;
-    background-color: white;
-}
 #FPS{
     position: absolute;
     top: 0;
@@ -50,6 +46,9 @@ button:hover{
 #leftmenu{
     overflow: scroll;
 }
+#rightmenu{
+    overflow: scroll;
+}
 /*
 #bsp{
     position: absolute;
@@ -57,3 +56,42 @@ button:hover{
     left: 0;
     font-size: xx-small;
 }*/
+.tinytxt{
+    font-size: xx-small;
+}
+.idk{
+    margin: 2.5%;
+    background-color: gray;
+    border: 5px solid white;
+    border-radius: 5px;
+}
+#settingsbtn{
+    position: absolute;
+    right: 5px;
+    bottom: 60px;
+    width: 50px;
+    height: 50px;
+}
+#settings{
+    display: none;
+    position: absolute;
+    left: 30%;
+    right: 30%;
+    top: 30%;
+    bottom: 30%;
+    background-color: gray;
+    border: 5px solid black;
+    border-radius: 10px;
+}
+h1{
+    font-size: xx-large;
+}
+#xstbtn{
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 25px;
+    height: 25px;
+    font-size:large;
+    background-color: red;
+}
